@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tracktor Works & Repairs - Operations Dashboard</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: '#3F4EFF',
+            darkBg: '#0B0B0F',
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- ApexCharts -->
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-darkBg text-gray-100 min-h-screen flex flex-col">
+
+  <!-- 1. LOGIN OVERLAY -->
+  <div id="login-overlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-md hidden">
+    <div class="glass-card-no-hover w-full max-w-md p-8 mx-4">
+      <div class="text-center mb-8">
+        <div class="inline-flex p-4 rounded-full bg-brand bg-opacity-20 text-brand mb-3">
+          <i data-lucide="wrench" class="w-10 h-10"></i>
+        </div>
+        <h2 class="text-2xl font-bold tracking-tight">Tracktor Works & Repairs</h2>
+        <p class="text-gray-400 text-sm mt-1">Daily Operations & Workshop Management</p>
+      </div>
+
+      <form id="login-form" class="space-y-5">
+        <div class="flex flex-col">
+          <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Username</label>
+          <input type="text" id="login-username" class="glass-input" placeholder="e.g. admin" required>
+        </div>
+        <div class="flex flex-col">
+          <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Password</label>
+          <input type="password" id="login-password" class="glass-input" placeholder="••••••••" required>
+        </div>
+        <div id="login-error" class="text-red-500 text-xs font-semibold hidden">Invalid credentials. Please try again.</div>
+        <button type="submit" class="w-full btn-primary justify-center py-3">
+          <i data-lucide="log-in" class="w-5 h-5"></i> Log In to Dashboard
+        </button>
+      </form>
+
+      <div class="mt-6 text-center text-xs text-gray-500">
+        Demo Login: <span class="font-semibold text-gray-400">admin</span> / <span class="font-semibold text-gray-400">tracktor123</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. MAIN APPLICATION CONTAINER -->
+  <div id="app-container" class="flex flex-1 min-h-screen hidden no-print">
+    
+    <!-- SIDEBAR -->
+    <aside class="w-64 bg-black bg-opacity-40 border-r border-gray-800 flex flex-col p-5 space-y-6">
+      <!-- Brand & Specialization Badge -->
+      <div class="flex flex-col space-y-2 pb-5 border-b border-gray-800">
+        <div class="flex items-center gap-3">
+          <div class="p-2 rounded-lg bg-brand text-white">
+            <i data-lucide="cog" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <h1 class="text-base font-bold leading-tight">Tracktor Works</h1>
+            <span class="text-xs text-gray-400">Works & Repairs</span>
+          </div>
+        </div>
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand bg-opacity-15 border border-brand border-opacity-35 text-[10px] font-semibold text-brand w-fit self-start">
+          <span class="w-1.5 h-1.5 rounded-full bg-brand"></span>
+          Mahindra Specialist
+        </div>
+      </div>
+
+      <!-- Navigation Links -->
+      <nav class="flex-1 flex flex-col space-y-1 overflow-y-auto">
+        <a href="#/dashboard" class="sidebar-link active" data-view="dashboard">
+          <i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard
+        </a>
+        <a href="#/customers" class="sidebar-link" data-view="customers">
+          <i data-lucide="users" class="w-5 h-5"></i> Customers
+        </a>
+        <a href="#/repair-orders" class="sidebar-link" data-view="repair-orders">
+          <i data-lucide="clipboard-list" class="w-5 h-5"></i> Repair Orders
+        </a>
+        <a href="#/finance" class="sidebar-link" data-view="finance">
+          <i data-lucide="indian-rupee" class="w-5 h-5"></i> Finance
+        </a>
+        <a href="#/employees" class="sidebar-link" data-view="employees">
+          <i data-lucide="users-2" class="w-5 h-5"></i> Employees
+        </a>
+        <a href="#/hiring" class="sidebar-link" data-view="hiring">
+          <i data-lucide="user-plus" class="w-5 h-5"></i> Hiring
+        </a>
+        <a href="#/inventory" class="sidebar-link" data-view="inventory">
+          <i data-lucide="package" class="w-5 h-5"></i> Inventory
+        </a>
+        <a href="#/reports" class="sidebar-link" data-view="reports">
+          <i data-lucide="bar-chart-3" class="w-5 h-5"></i> Reports
+        </a>
+        <a href="#/settings" class="sidebar-link" data-view="settings">
+          <i data-lucide="settings" class="w-5 h-5"></i> Settings
+        </a>
+      </nav>
+
+      <!-- User Profile & Logout -->
+      <div class="pt-4 border-t border-gray-800 flex flex-col space-y-3">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-full bg-brand bg-opacity-20 flex items-center justify-center text-brand font-bold text-sm" id="user-avatar">
+            WM
+          </div>
+          <div>
+            <div class="text-xs font-semibold text-gray-200" id="user-display-name">Workshop Manager</div>
+            <div class="text-[10px] text-gray-400" id="user-display-role">Admin / Owner</div>
+          </div>
+        </div>
+        <button id="logout-btn" class="w-full btn-secondary text-xs justify-center py-2">
+          <i data-lucide="log-out" class="w-4 h-4"></i> Log Out
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN MAIN CONTENT WRAPPER -->
+    <main class="flex-1 flex flex-col overflow-x-hidden overflow-y-auto">
+      
+      <!-- TOP BAR -->
+      <header class="h-16 border-b border-gray-800 bg-black bg-opacity-20 flex items-center justify-between px-8">
+        <div class="flex items-center gap-3">
+          <h2 class="text-xl font-bold tracking-tight" id="view-title">Dashboard</h2>
+        </div>
+        <div class="flex items-center gap-4">
+          <!-- Quick Search -->
+          <div class="relative w-64">
+            <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-gray-400"></i>
+            <input type="text" id="top-search" class="w-full pl-9 pr-4 py-2 text-xs glass-input" placeholder="Search customer, registration...">
+          </div>
+          
+          <!-- Specialization Badge -->
+          <div class="text-xs text-gray-400 flex items-center gap-1.5">
+            <span class="inline-block w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></span>
+            Live Workshop Sync
+          </div>
+        </div>
+      </header>
+
+      <!-- VIEW PANELS CONTAINER -->
+      <div class="flex-1 p-8" id="view-panels">
+
+        <!-- ==================== VIEW: DASHBOARD ==================== -->
+        <section id="view-dashboard" class="space-y-8 animate-fade-in">
+          
+          <!-- KPI Cards Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-5">
+            <div class="glass-panel p-5 flex flex-col justify-between">
+              <div>
+                <span class="text-gray-400 text-xs font-medium uppercase tracking-wider">Today's Orders</span>
+                <h3 class="text-3xl font-bold mt-2" id="kpi-today-orders">0</h3>
+              </div>
+              <div class="mt-4 flex items-center gap-1 text-xs text-green-400" id="kpi-orders-trend-container">
+                <i data-lucide="trending-up" class="w-4 h-4"></i>
+                <span id="kpi-orders-trend">+0 vs yesterday</span>
+              </div>
+            </div>
+
+            <div class="glass-panel p-5 flex flex-col justify-between">
+              <div>
+                <span class="text-gray-400 text-xs font-medium uppercase tracking-wider">Pending Deliveries</span>
+                <h3 class="text-3xl font-bold mt-2 text-yellow-400" id="kpi-pending-deliveries">0</h3>
+              </div>
+              <span class="text-gray-500 text-xs mt-4 block">Currently in workshop</span>
+            </div>
+
+            <div class="glass-panel p-5 flex flex-col justify-between">
+              <div>
+                <span class="text-gray-400 text-xs font-medium uppercase tracking-wider">Monthly Revenue</span>
+                <h3 class="text-3xl font-bold mt-2 text-green-400" id="kpi-monthly-revenue">₹0</h3>
+              </div>
+              <span class="text-gray-500 text-xs mt-4 block">Collected this month</span>
+            </div>
+
+            <div class="glass-panel p-5 flex flex-col justify-between">
+              <div>
+                <span class="text-gray-400 text-xs font-medium uppercase tracking-wider">Outstanding Dues</span>
+                <h3 class="text-3xl font-bold mt-2 text-red-400" id="kpi-outstanding-payments">₹0</h3>
+              </div>
+              <span class="text-gray-500 text-xs mt-4 block">Pending invoice balances</span>
+            </div>
+
+            <div class="glass-panel p-5 flex flex-col justify-between">
+              <div>
+                <span class="text-gray-400 text-xs font-medium uppercase tracking-wider">Active Customers</span>
+                <h3 class="text-3xl font-bold mt-2" id="kpi-active-customers">0</h3>
+              </div>
+              <span class="text-gray-500 text-xs mt-4 block">In directory database</span>
+            </div>
+
+            <div class="glass-panel p-5 flex flex-col justify-between">
+              <div>
+                <span class="text-gray-400 text-xs font-medium uppercase tracking-wider">Available Mechanics</span>
+                <h3 class="text-3xl font-bold mt-2 text-blue-400" id="kpi-available-mechanics">0 / 0</h3>
+              </div>
+              <span class="text-gray-500 text-xs mt-4 block">Present on duty today</span>
+            </div>
+          </div>
+
+          <!-- Charts Grid -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Revenue Overview -->
+            <div class="glass-panel p-6 lg:col-span-2">
+              <h4 class="text-base font-bold mb-4 flex items-center gap-2">
+                <i data-lucide="trending-up" class="text-brand"></i> Revenue Overview (₹)
+              </h4>
+              <div id="chart-revenue" class="h-64"></div>
+            </div>
+
+            <!-- Brand Distribution -->
+            <div class="glass-panel p-6">
+              <h4 class="text-base font-bold mb-4 flex items-center gap-2">
+                <i data-lucide="pie-chart" class="text-brand"></i> Orders by Brand
+              </h4>
+              <div id="chart-brands" class="h-64"></div>
+            </div>
+
+            <!-- Service Types -->
+            <div class="glass-panel p-6 lg:col-span-3">
+              <h4 class="text-base font-bold mb-4 flex items-center gap-2">
+                <i data-lucide="bar-chart-2" class="text-brand"></i> Service Type Distribution
+              </h4>
+              <div id="chart-services" class="h-64"></div>
+            </div>
+          </div>
+
+          <!-- Tractor Showcase Images Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Mahindra 575 Card -->
+            <div class="glass-panel overflow-hidden flex flex-col h-64 group">
+              <div class="h-44 overflow-hidden relative">
+                <img src="/mahindra_575.jpg" alt="Mahindra 575 DI" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
+                <div class="absolute bottom-3 left-4">
+                  <h5 class="text-sm font-bold text-white flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-red-500"></span> Mahindra 575 DI Service Hub
+                  </h5>
+                </div>
+              </div>
+              <div class="p-4 flex-1 bg-white bg-opacity-5 flex items-center justify-between text-xs text-gray-400">
+                <span>Specialized parts overhaul & tuning capability</span>
+                <span class="text-brand font-semibold flex items-center gap-1">Primary Focus <i data-lucide="check" class="w-3.5 h-3.5"></i></span>
+              </div>
+            </div>
+
+            <!-- Swaraj Card -->
+            <div class="glass-panel overflow-hidden flex flex-col h-64 group">
+              <div class="h-44 overflow-hidden relative">
+                <img src="/swaraj.jpg" alt="Swaraj Tractor" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
+                <div class="absolute bottom-3 left-4">
+                  <h5 class="text-sm font-bold text-white flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-blue-500"></span> Swaraj Multi-Brand Service Point
+                  </h5>
+                </div>
+              </div>
+              <div class="p-4 flex-1 bg-white bg-opacity-5 flex items-center justify-between text-xs text-gray-400">
+                <span>Complete chassis welding & structural mechanical works</span>
+                <span class="text-brand font-semibold flex items-center gap-1">Certified Repair <i data-lucide="shield" class="w-3.5 h-3.5"></i></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Columns: Advisor & Guidelines -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            <!-- WORKSHOP GROWTH ADVISOR -->
+            <div class="glass-panel p-6 flex flex-col space-y-4">
+              <div class="flex items-center gap-2.5 pb-2 border-b border-gray-800">
+                <i data-lucide="sparkles" class="text-brand w-5 h-5"></i>
+                <h4 class="text-lg font-bold">Workshop Growth Advisor</h4>
+              </div>
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Advice 1 -->
+                <div class="p-4 rounded-xl bg-white bg-opacity-5 border border-gray-800 space-y-2">
+                  <div class="flex items-center gap-2 text-yellow-400 text-sm font-semibold">
+                    <i data-lucide="wallet" class="w-4 h-4"></i> Improve Cash Flow
+                  </div>
+                  <p class="text-xs text-gray-400 leading-relaxed">
+                    Follow up on outstanding payments older than 15 days. Promote instant UPI payment at tractor delivery.
+                  </p>
+                </div>
+                
+                <!-- Advice 2 -->
+                <div class="p-4 rounded-xl bg-white bg-opacity-5 border border-gray-800 space-y-2">
+                  <div class="flex items-center gap-2 text-green-400 text-sm font-semibold">
+                    <i data-lucide="phone-call" class="w-4 h-4"></i> Increase Repeat visits
+                  </div>
+                  <p class="text-xs text-gray-400 leading-relaxed">
+                    Send tractor service reminders every 6 months via WhatsApp. Maintain detailed repair history logs.
+                  </p>
+                </div>
+
+                <!-- Advice 3 -->
+                <div class="p-4 rounded-xl bg-white bg-opacity-5 border border-gray-800 space-y-2">
+                  <div class="flex items-center gap-2 text-brand text-sm font-semibold">
+                    <i data-lucide="award" class="w-4 h-4"></i> Specialization Edge
+                  </div>
+                  <p class="text-xs text-gray-400 leading-relaxed">
+                    Promote **Mahindra specialist repair** capability prominently on print receipts, invoices, and banners.
+                  </p>
+                </div>
+
+                <!-- Advice 4 -->
+                <div class="p-4 rounded-xl bg-white bg-opacity-5 border border-gray-800 space-y-2">
+                  <div class="flex items-center gap-2 text-blue-400 text-sm font-semibold">
+                    <i data-lucide="flame" class="w-4 h-4"></i> Welding Upsell
+                  </div>
+                  <p class="text-xs text-gray-400 leading-relaxed">
+                    Suggest structural welding inspection on agricultural chassis attachments during major engine repairs.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- OPERATIONAL GUIDELINES PANEL -->
+            <div class="glass-panel p-6 flex flex-col">
+              <div class="flex items-center justify-between pb-2 border-b border-gray-800 mb-4">
+                <div class="flex items-center gap-2.5">
+                  <i data-lucide="book-open" class="text-brand w-5 h-5"></i>
+                  <h4 class="text-lg font-bold">Operational Guidelines</h4>
+                </div>
+                <button id="toggle-guidelines" class="text-xs text-gray-400 hover:text-white flex items-center gap-1">
+                  <span>Collapse</span> <i data-lucide="chevron-up" class="w-4 h-4"></i>
+                </button>
+              </div>
+
+              <div id="guidelines-content" class="space-y-4 transition-all duration-300">
+                <!-- Category: Customer Service -->
+                <div>
+                  <h5 class="text-sm font-semibold text-brand mb-1.5 flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-brand"></span> Customer Service
+                  </h5>
+                  <ul class="text-xs text-gray-400 list-disc pl-4 space-y-1">
+                    <li>Always explain cost estimates thoroughly before initiating repairs.</li>
+                    <li>Share photos/videos via WhatsApp for major internal engine parts replacements.</li>
+                    <li>Clearly commit to and document expected delivery dates.</li>
+                  </ul>
+                </div>
+
+                <!-- Category: Safety -->
+                <div>
+                  <h5 class="text-sm font-semibold text-yellow-500 mb-1.5 flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-yellow-500"></span> Workshop Safety
+                  </h5>
+                  <ul class="text-xs text-gray-400 list-disc pl-4 space-y-1">
+                    <li>Mechanics must wear welding masks and heavy gloves during welding works.</li>
+                    <li>Always disconnect tractor batteries before carrying out any electrical system repairs.</li>
+                    <li>Store fuels and lubricants in specialized cabinets away from the welding area.</li>
+                  </ul>
+                </div>
+
+                <!-- Category: Record Keeping -->
+                <div>
+                  <h5 class="text-sm font-semibold text-green-500 mb-1.5 flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Record Keeping
+                  </h5>
+                  <ul class="text-xs text-gray-400 list-disc pl-4 space-y-1">
+                    <li>Initialize a formal Job Card for every single tractor entry.</li>
+                    <li>Record cash, UPI, and outstanding dues transactions immediately.</li>
+                    <li>Update the active repair status daily.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- ==================== VIEW: CUSTOMERS ==================== -->
+        <section id="view-customers" class="space-y-6 animate-fade-in hidden">
+          <!-- Search & Filter Controls -->
+          <div class="glass-panel p-4 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+              <input type="text" id="cust-search" class="glass-input text-xs w-full md:w-64" placeholder="Search name, phone, village...">
+              <select id="cust-filter-brand" class="glass-input text-xs">
+                <option value="">All Brands</option>
+                <option value="Mahindra">Mahindra</option>
+                <option value="Swaraj">Swaraj</option>
+                <option value="John Deere">John Deere</option>
+                <option value="Other">Other Brands</option>
+              </select>
+              <input type="text" id="cust-filter-village" class="glass-input text-xs w-full md:w-40" placeholder="Village name...">
+            </div>
+            
+            <div class="flex gap-3 w-full md:w-auto">
+              <button id="btn-export-customers" class="btn-secondary text-xs">
+                <i data-lucide="download" class="w-4 h-4"></i> Export CSV
+              </button>
+              <button id="btn-add-customer-modal" class="btn-primary text-xs">
+                <i data-lucide="user-plus" class="w-4 h-4"></i> Add Customer
+              </button>
+            </div>
+          </div>
+
+          <!-- Customer List Panel -->
+          <div class="glass-panel overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="border-b border-gray-800 text-xs font-semibold text-gray-400 uppercase tracking-wider bg-white bg-opacity-5">
+                    <th class="p-4">Customer ID</th>
+                    <th class="p-4">Name</th>
+                    <th class="p-4">Mobile Number</th>
+                    <th class="p-4">Village / Location</th>
+                    <th class="p-4">Tractor Brand</th>
+                    <th class="p-4">Last Visit</th>
+                    <th class="p-4">Total Spend</th>
+                    <th class="p-4">Outstanding Due</th>
+                    <th class="p-4">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="customers-table-body" class="text-sm divide-y divide-gray-800">
+                  <!-- JS generated rows -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Profile Details Panel Overlay (Hidden by Default) -->
+          <div id="customer-profile-section" class="glass-panel p-6 space-y-6 hidden">
+            <div class="flex items-center justify-between border-b border-gray-800 pb-3">
+              <div class="flex items-center gap-3">
+                <h3 class="text-lg font-bold" id="prof-name">Customer Profile</h3>
+                <span class="text-xs text-gray-400" id="prof-id">#ID</span>
+              </div>
+              <button id="btn-close-profile" class="text-gray-400 hover:text-white">
+                <i data-lucide="x" class="w-5 h-5"></i>
+              </button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <!-- Info details -->
+              <div class="space-y-4">
+                <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Contact & Tractor Details</h4>
+                <div class="p-4 rounded-xl bg-white bg-opacity-5 space-y-3 text-sm">
+                  <div class="flex justify-between"><span class="text-gray-400">Mobile:</span> <span id="prof-phone">-</span></div>
+                  <div class="flex justify-between"><span class="text-gray-400">Village:</span> <span id="prof-village">-</span></div>
+                  <div class="flex justify-between"><span class="text-gray-400">Primary Tractor:</span> <span id="prof-brand">-</span></div>
+                  <div class="flex justify-between"><span class="text-gray-400">Total Spend:</span> <span class="font-bold text-green-400" id="prof-total-spend">₹0</span></div>
+                  <div class="flex justify-between"><span class="text-gray-400">Outstanding Balance:</span> <span class="font-bold text-red-400" id="prof-outstanding">₹0</span></div>
+                  <div class="pt-2 border-t border-gray-800"><span class="text-gray-400 block text-xs mb-1">Notes:</span> <p id="prof-notes" class="text-xs text-gray-300"></p></div>
+                </div>
+
+                <div class="flex flex-col gap-2">
+                  <button id="btn-prof-add-order" class="btn-primary text-xs justify-center">
+                    <i data-lucide="plus-circle" class="w-4 h-4"></i> Create Repair Order
+                  </button>
+                  <button id="btn-prof-record-payment" class="btn-secondary text-xs justify-center text-green-400 border-green-500 border-opacity-30 hover:bg-green-500 hover:bg-opacity-10">
+                    <i data-lucide="indian-rupee" class="w-4 h-4"></i> Record Payment
+                  </button>
+                  <a id="btn-prof-whatsapp" href="#" target="_blank" class="btn-secondary text-xs justify-center text-blue-400 border-blue-500 border-opacity-30 hover:bg-blue-500 hover:bg-opacity-10">
+                    <i data-lucide="send" class="w-4 h-4"></i> Send WhatsApp Reminder
+                  </a>
+                </div>
+              </div>
+
+              <!-- History tables -->
+              <div class="lg:col-span-2 space-y-4">
+                <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Service History</h4>
+                <div class="rounded-xl border border-gray-800 overflow-hidden bg-white bg-opacity-5">
+                  <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr class="bg-white bg-opacity-5 border-b border-gray-800 font-semibold text-gray-400">
+                        <th class="p-3">Order ID</th>
+                        <th class="p-3">Model</th>
+                        <th class="p-3">Complaint</th>
+                        <th class="p-3">Cost</th>
+                        <th class="p-3">Status</th>
+                        <th class="p-3">Date</th>
+                      </tr>
+                    </thead>
+                    <tbody id="prof-history-table" class="divide-y divide-gray-800 text-gray-300">
+                      <!-- generated dynamically -->
+                    </tbody>
+                  </table>
+                </div>
+
+                <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Payment History</h4>
+                <div class="rounded-xl border border-gray-800 overflow-hidden bg-white bg-opacity-5">
+                  <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr class="bg-white bg-opacity-5 border-b border-gray-800 font-semibold text-gray-400">
+                        <th class="p-3">Date</th>
+                        <th class="p-3">Amount</th>
+                        <th class="p-3">Method</th>
+                        <th class="p-3">Reference / Notes</th>
+                      </tr>
+                    </thead>
+                    <tbody id="prof-payments-table" class="divide-y divide-gray-800 text-gray-300">
+                      <!-- generated dynamically -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== VIEW: REPAIR ORDERS ==================== -->
+        <section id="view-repair-orders" class="space-y-6 animate-fade-in hidden">
+          
+          <div class="flex justify-between items-center">
+            <h3 class="text-lg font-bold">Workflow Tracking (Kanban Board)</h3>
+            <button id="btn-add-order-modal" class="btn-primary text-xs">
+              <i data-lucide="plus-circle" class="w-4 h-4"></i> Create Repair Order
+            </button>
+          </div>
+
+          <!-- Kanban Board -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-8 gap-3 items-start overflow-x-auto pb-4">
+            
+            <!-- Column template (8 statuses) -->
+            <div class="glass-card-no-hover p-3 flex flex-col space-y-3 min-w-[200px]" data-status="Received">
+              <div class="flex items-center justify-between border-b border-gray-800 pb-2">
+                <span class="text-xs font-bold text-gray-300">1. Received</span>
+                <span class="px-2 py-0.5 rounded-full bg-gray-800 text-[10px] text-gray-400 font-semibold count-badge">0</span>
+              </div>
+              <div class="kanban-column space-y-3 flex-1" id="column-received" ondragover="allowDrop(event)" ondrop="drop(event, 'Received')">
+                <!-- Cards -->
+              </div>
+            </div>
+
+            <div class="glass-card-no-hover p-3 flex flex-col space-y-3 min-w-[200px]" data-status="Inspection">
+              <div class="flex items-center justify-between border-b border-gray-800 pb-2">
+                <span class="text-xs font-bold text-blue-400">2. Inspection</span>
+                <span class="px-2 py-0.5 rounded-full bg-blue-500 bg-opacity-20 text-[10px] text-blue-400 font-semibold count-badge">0</span>
+              </div>
+              <div class="kanban-column space-y-3 flex-1" id="column-inspection" ondragover="allowDrop(event)" ondrop="drop(event, 'Inspection')">
+                <!-- Cards -->
+              </div>
+            </div>
+
+            <div class="glass-card-no-hover p-3 flex flex-col space-y-3 min-w-[200px]" data-status="Parts Required">
+              <div class="flex items-center justify-between border-b border-gray-800 pb-2">
+                <span class="text-xs font-bold text-red-400">3. Parts Req.</span>
+                <span class="px-2 py-0.5 rounded-full bg-red-500 bg-opacity-20 text-[10px] text-red-400 font-semibold count-badge">0</span>
+              </div>
+              <div class="kanban-column space-y-3 flex-1" id="column-parts-req" ondragover="allowDrop(event)" ondrop="drop(event, 'Parts Required')">
+                <!-- Cards -->
+              </div>
+            </div>
+
+            <div class="glass-card-no-hover p-3 flex flex-col space-y-3 min-w-[200px]" data-status="Repair In Progress">
+              <div class="flex items-center justify-between border-b border-gray-800 pb-2">
+                <span class="text-xs font-bold text-yellow-500">4. Progress</span>
+                <span class="px-2 py-0.5 rounded-full bg-yellow-500 bg-opacity-20 text-[10px] text-yellow-500 font-semibold count-badge">0</span>
+              </div>
+              <div class="kanban-column space-y-3 flex-1" id="column-progress" ondragover="allowDrop(event)" ondrop="drop(event, 'Repair In Progress')">
+                <!-- Cards -->
+              </div>
+            </div>
+
+            <div class="glass-card-no-hover p-3 flex flex-col space-y-3 min-w-[200px]" data-status="Welding Work">
+              <div class="flex items-center justify-between border-b border-gray-800 pb-2">
+                <span class="text-xs font-bold text-purple-400">5. Welding</span>
+                <span class="px-2 py-0.5 rounded-full bg-purple-500 bg-opacity-20 text-[10px] text-purple-400 font-semibold count-badge">0</span>
+              </div>
+              <div class="kanban-column space-y-3 flex-1" id="column-welding" ondragover="allowDrop(event)" ondrop="drop(event, 'Welding Work')">
+                <!-- Cards -->
+              </div>
+            </div>
+
+            <div class="glass-card-no-hover p-3 flex flex-col space-y-3 min-w-[200px]" data-status="Testing">
+              <div class="flex items-center justify-between border-b border-gray-800 pb-2">
+                <span class="text-xs font-bold text-orange-400">6. Testing</span>
+                <span class="px-2 py-0.5 rounded-full bg-orange-500 bg-opacity-20 text-[10px] text-orange-400 font-semibold count-badge">0</span>
+              </div>
+              <div class="kanban-column space-y-3 flex-1" id="column-testing" ondragover="allowDrop(event)" ondrop="drop(event, 'Testing')">
+                <!-- Cards -->
+              </div>
+            </div>
+
+            <div class="glass-card-no-hover p-3 flex flex-col space-y-3 min-w-[200px]" data-status="Ready for Delivery">
+              <div class="flex items-center justify-between border-b border-gray-800 pb-2">
+                <span class="text-xs font-bold text-green-400">7. Ready</span>
+                <span class="px-2 py-0.5 rounded-full bg-green-500 bg-opacity-20 text-[10px] text-green-400 font-semibold count-badge">0</span>
+              </div>
+              <div class="kanban-column space-y-3 flex-1" id="column-ready" ondragover="allowDrop(event)" ondrop="drop(event, 'Ready for Delivery')">
+                <!-- Cards -->
+              </div>
+            </div>
+
+            <div class="glass-card-no-hover p-3 flex flex-col space-y-3 min-w-[200px]" data-status="Delivered">
+              <div class="flex items-center justify-between border-b border-gray-800 pb-2">
+                <span class="text-xs font-bold text-teal-400">8. Delivered</span>
+                <span class="px-2 py-0.5 rounded-full bg-teal-500 bg-opacity-20 text-[10px] text-teal-400 font-semibold count-badge">0</span>
+              </div>
+              <div class="kanban-column space-y-3 flex-1" id="column-delivered" ondragover="allowDrop(event)" ondrop="drop(event, 'Delivered')">
+                <!-- Cards -->
+              </div>
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- ==================== VIEW: FINANCE ==================== -->
+        <section id="view-finance" class="space-y-6 animate-fade-in hidden">
+          
+          <div class="grid grid-cols-1 lg:grid-cols-4 gap-5">
+            <!-- P&L Card -->
+            <div class="glass-panel p-5 space-y-3">
+              <span class="text-gray-400 text-xs font-semibold uppercase tracking-wider block">Financial Performance</span>
+              <div class="flex justify-between items-end">
+                <div>
+                  <span class="text-[10px] text-gray-500 uppercase font-semibold">Net Profit</span>
+                  <h4 class="text-2xl font-bold" id="fin-net-profit">₹0</h4>
+                </div>
+                <div class="text-right">
+                  <div class="text-xs text-green-400" id="fin-total-revenue">Rev: ₹0</div>
+                  <div class="text-xs text-red-400" id="fin-total-expense">Exp: ₹0</div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Quick Record Income Form -->
+            <div class="glass-panel p-5 lg:col-span-3 space-y-3">
+              <span class="text-gray-400 text-xs font-semibold uppercase tracking-wider block">Log Transaction</span>
+              <form id="finance-log-form" class="grid grid-cols-1 md:grid-cols-5 gap-3">
+                <select id="fin-log-type" class="glass-input text-xs" required>
+                  <option value="revenue">Revenue (Income)</option>
+                  <option value="expense">Expense</option>
+                </select>
+                <input type="number" id="fin-log-amount" class="glass-input text-xs" placeholder="Amount (₹)" required>
+                <select id="fin-log-category" class="glass-input text-xs" required>
+                  <!-- revenue tags -->
+                  <option value="Repair Services">Repair Services</option>
+                  <option value="Welding Works">Welding Works</option>
+                  <option value="Spare Parts">Spare Parts</option>
+                  <option value="Labour Charges">Labour Charges</option>
+                  <!-- expense tags -->
+                  <option value="Spare parts purchase">Spare parts purchase</option>
+                  <option value="Salaries">Salaries</option>
+                  <option value="Electricity">Electricity</option>
+                  <option value="Rent">Rent</option>
+                  <option value="Tools & equipment">Tools & equipment</option>
+                  <option value="Fuel">Fuel</option>
+                  <option value="Miscellaneous">Miscellaneous</option>
+                </select>
+                <select id="fin-log-method" class="glass-input text-xs" required>
+                  <option value="UPI">UPI</option>
+                  <option value="Cash">Cash</option>
+                  <option value="Bank Transfer">Bank Transfer</option>
+                  <option value="Credit / Due">Credit / Due</option>
+                </select>
+                <button type="submit" class="btn-primary text-xs justify-center">Record</button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Transaction List & Productivity -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="glass-panel p-5 lg:col-span-2 space-y-4">
+              <h4 class="text-sm font-bold flex items-center gap-2">
+                <i data-lucide="history" class="text-brand"></i> Transaction Ledger
+              </h4>
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr class="border-b border-gray-800 text-gray-400 font-semibold bg-white bg-opacity-5">
+                      <th class="p-3">Date</th>
+                      <th class="p-3">Type</th>
+                      <th class="p-3">Category</th>
+                      <th class="p-3">Amount</th>
+                      <th class="p-3">Method</th>
+                      <th class="p-3">Notes</th>
+                    </tr>
+                  </thead>
+                  <tbody id="finance-ledger-body" class="divide-y divide-gray-800">
+                    <!-- generated dynamically -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="glass-panel p-5 space-y-4">
+              <h4 class="text-sm font-bold flex items-center gap-2">
+                <i data-lucide="wrench" class="text-brand"></i> Mechanic Productivity (Delivered Jobs)
+              </h4>
+              <div class="space-y-3" id="mechanic-productivity-list">
+                <!-- dynamic list -->
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ==================== VIEW: EMPLOYEES ==================== -->
+        <section id="view-employees" class="space-y-6 animate-fade-in hidden">
+          
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Directory Column -->
+            <div class="glass-panel p-5 lg:col-span-2 space-y-4">
+              <div class="flex justify-between items-center pb-2 border-b border-gray-800">
+                <h4 class="text-base font-bold">Employee Directory</h4>
+                <button id="btn-add-employee-modal" class="btn-primary text-xs">
+                  <i data-lucide="user-plus" class="w-4 h-4"></i> Add Employee
+                </button>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="employee-cards-grid">
+                <!-- dynamic cards -->
+              </div>
+            </div>
+
+            <!-- Attendance & Payouts Column -->
+            <div class="space-y-6">
+              <!-- Attendance Check-in Panel -->
+              <div class="glass-panel p-5 space-y-4">
+                <h4 class="text-base font-bold pb-2 border-b border-gray-800 flex justify-between items-center">
+                  <span>Daily Attendance</span>
+                  <input type="date" id="attendance-date-selector" class="glass-input text-[11px] p-1 h-7">
+                </h4>
+                <div class="space-y-3" id="attendance-list-container">
+                  <!-- dynamic attendances -->
+                </div>
+              </div>
+
+              <!-- Salary payouts trigger -->
+              <div class="glass-panel p-5 space-y-4">
+                <h4 class="text-base font-bold pb-2 border-b border-gray-800">Monthly Payroll</h4>
+                <div class="flex gap-2">
+                  <select id="payroll-month-selector" class="glass-input text-xs flex-1">
+                    <!-- filled dynamically -->
+                  </select>
+                  <button id="btn-calculate-payroll" class="btn-primary text-xs">Compute Salaries</button>
+                </div>
+                <div id="payroll-results-container" class="space-y-2 text-xs">
+                  <!-- results list -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ==================== VIEW: HIRING ==================== -->
+        <section id="view-hiring" class="space-y-6 animate-fade-in hidden">
+          
+          <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <!-- Left opens positions -->
+            <div class="glass-panel p-5 space-y-4">
+              <h4 class="text-base font-bold pb-2 border-b border-gray-800">Job Openings</h4>
+              <div class="space-y-3">
+                <div class="p-3 rounded-lg bg-brand bg-opacity-10 border border-brand border-opacity-20 space-y-1">
+                  <div class="text-xs font-bold">Mahindra Specialist</div>
+                  <div class="text-[10px] text-gray-400">Full-time • 5+ Years Exp.</div>
+                </div>
+                <div class="p-3 rounded-lg bg-white bg-opacity-5 border border-gray-800 space-y-1">
+                  <div class="text-xs font-bold">Tractor Mechanic</div>
+                  <div class="text-[10px] text-gray-400">Full-time • 3+ Years Exp.</div>
+                </div>
+                <div class="p-3 rounded-lg bg-white bg-opacity-5 border border-gray-800 space-y-1">
+                  <div class="text-xs font-bold">Welding Technician</div>
+                  <div class="text-[10px] text-gray-400">Full-time • Welding specialist</div>
+                </div>
+                <div class="p-3 rounded-lg bg-white bg-opacity-5 border border-gray-800 space-y-1">
+                  <div class="text-xs font-bold">Workshop Helper</div>
+                  <div class="text-[10px] text-gray-400">Part-time/Daily wage</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Kanban candidate tracking -->
+            <div class="glass-panel p-5 lg:col-span-3 space-y-4">
+              <div class="flex justify-between items-center pb-2 border-b border-gray-800">
+                <h4 class="text-base font-bold">Candidate Funnel Tracking</h4>
+                <button id="btn-add-candidate-modal" class="btn-primary text-xs">
+                  <i data-lucide="plus-circle" class="w-4 h-4"></i> Add Candidate
+                </button>
+              </div>
+
+              <!-- candidate cards group by state -->
+              <div class="grid grid-cols-1 md:grid-cols-5 gap-3" id="candidate-columns-container">
+                <!-- JS loops: Applied, Interview, Trial Work, Selected, Rejected -->
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ==================== VIEW: INVENTORY ==================== -->
+        <section id="view-inventory" class="space-y-6 animate-fade-in hidden">
+          
+          <div class="glass-panel p-4 flex flex-col md:flex-row items-center justify-between gap-4">
+            <h4 class="text-base font-bold">Workshop Spare Parts Inventory</h4>
+            <button id="btn-add-inventory-modal" class="btn-primary text-xs">
+              <i data-lucide="plus-circle" class="w-4 h-4"></i> Add Spare Part
+            </button>
+          </div>
+
+          <div class="glass-panel overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="border-b border-gray-800 text-xs font-semibold text-gray-400 uppercase bg-white bg-opacity-5">
+                    <th class="p-4">Part Name</th>
+                    <th class="p-4">Fits Brand</th>
+                    <th class="p-4">Quantity In Stock</th>
+                    <th class="p-4">Reorder Level</th>
+                    <th class="p-4">Purchase Price</th>
+                    <th class="p-4">Selling Price</th>
+                    <th class="p-4">Stock Alert</th>
+                    <th class="p-4">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="inventory-table-body" class="text-sm divide-y divide-gray-800">
+                  <!-- dynamic inventory -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ==================== VIEW: REPORTS ==================== -->
+        <section id="view-reports" class="space-y-6 animate-fade-in hidden">
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Daily Report Panel -->
+            <div class="glass-panel p-6 space-y-4">
+              <div class="flex items-center gap-3 pb-2 border-b border-gray-800">
+                <i data-lucide="file-text" class="text-brand w-6 h-6"></i>
+                <h4 class="text-base font-bold">Daily Workshop Report</h4>
+              </div>
+              <p class="text-xs text-gray-400">Summarizes repair orders received, jobs completed, payments collected and pending queue for today.</p>
+              
+              <div class="p-4 rounded-xl bg-white bg-opacity-5 space-y-2 text-xs" id="report-daily-preview">
+                <!-- JS values -->
+              </div>
+              <button id="btn-download-daily-report" class="btn-primary text-xs w-full justify-center">
+                <i data-lucide="download" class="w-4 h-4"></i> Download PDF Summary
+              </button>
+            </div>
+
+            <!-- Monthly Report Panel -->
+            <div class="glass-panel p-6 space-y-4">
+              <div class="flex items-center gap-3 pb-2 border-b border-gray-800">
+                <i data-lucide="file-chart-column" class="text-brand w-6 h-6"></i>
+                <h4 class="text-base font-bold">Monthly Business Report</h4>
+              </div>
+              <p class="text-xs text-gray-400">Complete summary of monthly financial revenue, expenses, net profit margins, top customers and most serviced tractors.</p>
+              
+              <div class="p-4 rounded-xl bg-white bg-opacity-5 space-y-2 text-xs" id="report-monthly-preview">
+                <!-- JS values -->
+              </div>
+              <button id="btn-download-monthly-report" class="btn-primary text-xs w-full justify-center">
+                <i data-lucide="download" class="w-4 h-4"></i> Download Business Report
+              </button>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ==================== VIEW: SETTINGS ==================== -->
+        <section id="view-settings" class="space-y-6 animate-fade-in hidden">
+          
+          <div class="glass-panel p-6 max-w-2xl space-y-6">
+            <h4 class="text-lg font-bold pb-2 border-b border-gray-800">System Preferences</h4>
+            
+            <div class="space-y-4 text-sm">
+              <div class="flex justify-between items-center">
+                <div>
+                  <div class="font-bold">Workshop Theme Mode</div>
+                  <div class="text-xs text-gray-400">Switch between dark mode and system configurations.</div>
+                </div>
+                <span class="px-3 py-1 rounded bg-brand bg-opacity-25 text-brand text-xs font-semibold">Dark Mode (Default)</span>
+              </div>
+
+              <div class="flex justify-between items-center pt-4 border-t border-gray-800">
+                <div>
+                  <div class="font-bold">Workshop Profile Info</div>
+                  <div class="text-xs text-gray-400">Name: Tracktor Works and Repairs<br>Address: Workshop Road, Kalyanpur</div>
+                </div>
+                <button class="btn-secondary text-xs">Edit Details</button>
+              </div>
+
+              <div class="flex justify-between items-center pt-4 border-t border-gray-800">
+                <div>
+                  <div class="font-bold">SMS & WhatsApp Alerts</div>
+                  <div class="text-xs text-gray-400">Send automatic updates when a tractor status changes to "Ready".</div>
+                </div>
+                <span class="text-xs text-green-400">Active</span>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- 3. MODALS CONTAINER (POPUP WINDOWS) -->
+  
+  <!-- Add Customer Modal -->
+  <div id="modal-add-customer" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm hidden">
+    <div class="glass-card-no-hover w-full max-w-lg p-6 mx-4">
+      <div class="flex justify-between items-center mb-5 pb-2 border-b border-gray-800">
+        <h4 class="text-base font-bold">Register New Customer</h4>
+        <button class="text-gray-400 hover:text-white close-modal"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <form id="form-add-customer" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="flex flex-col">
+            <label class="text-xs font-semibold text-gray-400 mb-1">Customer Name</label>
+            <input type="text" id="cust-name-input" class="glass-input text-xs" required>
+          </div>
+          <div class="flex flex-col">
+            <label class="text-xs font-semibold text-gray-400 mb-1">Phone Number</label>
+            <input type="tel" id="cust-phone-input" class="glass-input text-xs" required>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="flex flex-col">
+            <label class="text-xs font-semibold text-gray-400 mb-1">Village / Location</label>
+            <input type="text" id="cust-village-input" class="glass-input text-xs" required>
+          </div>
+          <div class="flex flex-col">
+            <label class="text-xs font-semibold text-gray-400 mb-1">Tractor Brand</label>
+            <select id="cust-brand-input" class="glass-input text-xs" required>
+              <option value="Mahindra">Mahindra (Specialist)</option>
+              <option value="Swaraj">Swaraj</option>
+              <option value="John Deere">John Deere</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex flex-col">
+          <label class="text-xs font-semibold text-gray-400 mb-1">Additional Notes</label>
+          <textarea id="cust-notes-input" class="glass-input text-xs h-20" placeholder="Optional notes..."></textarea>
+        </div>
+        <div class="flex justify-end gap-3 pt-3 border-t border-gray-800">
+          <button type="button" class="btn-secondary text-xs close-modal">Cancel</button>
+          <button type="submit" class="btn-primary text-xs">Register Customer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Repair Order Modal -->
+  <div id="modal-add-order" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm hidden">
+    <div class="glass-card-no-hover w-full max-w-xl p-6 mx-4">
+      <div class="flex justify-between items-center mb-5 pb-2 border-b border-gray-800">
+        <h4 class="text-base font-bold">Book Tractor Repair Order</h4>
+        <button class="text-gray-400 hover:text-white close-modal"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <form id="form-add-order" class="space-y-4">
+        <input type="hidden" id="order-cust-id">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="flex flex-col">
+            <label class="text-xs font-semibold text-gray-400 mb-1">Customer</label>
+            <select id="order-customer-select" class="glass-input text-xs" required>
+              <!-- Filled with customers -->
+            </select>
+          </div>
+          <div class="flex flex-col">
+            <label class="text-xs font-semibold text-gray-400 mb-1">Tractor Model</label>
+            <input type="text" id="order-model-input" class="glass-input text-xs" placeholder="e.g. Arjun 555 DI" required>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="flex flex-col">
+            <label class="text-xs font-semibold text-gray-400 mb-1">Tractor Brand</label>
+            <select id="order-brand-select" class="glass-input text-xs" required>
+              <option value="Mahindra">Mahindra</option>
+              <option value="Swaraj">Swaraj</option>
+              <option value="John Deere">John Deere</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="flex flex-col">
+            <label class="text-xs font-semibold text-gray-400 mb-1">Reg Number</label>
+            <input type="text" id="order-reg-input" class="glass-input text-xs" placeholder="e.g. HR-20-A-4321" required>
+          </div>
+          <div class="flex flex-col">
+            <label class="text-xs font-semibold text-gray-400 mb-1">Priority</label>
+            <select id="order-priority-select" class="glass-input text-xs">
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
+              <option value="Low">Low</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex flex-col">
+          <label class="text-xs font-semibold text-gray-400 mb-1">Complaint / Work Description</label>
+          <textarea id="order-complaint-input" class="glass-input text-xs h-20" placeholder="Describe customer complaints..." required></textarea>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="flex flex-col">
+            <label class="text-xs font-semibold text-gray-400 mb-1">Estimated Cost (₹)</label>
+            <input type="number" id="order-cost-input" class="glass-input text-xs" required>
+          </div>
+          <div class="flex flex-col">
+            <label class="text-xs font-semibold text-gray-400 mb-1">Assign Mechanic</label>
+            <select id="order-mechanic-select" class="glass-input text-xs">
+              <!-- Filled with employees -->
+            </select>
+          </div>
+          <div class="flex flex-col">
+            <label class="text-xs font-semibold text-gray-400 mb-1">Expected Delivery</label>
+            <input type="date" id="order-delivery-input" class="glass-input text-xs" required>
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 pt-3 border-t border-gray-800">
+          <button type="button" class="btn-secondary text-xs close-modal">Cancel</button>
+          <button type="submit" class="btn-primary text-xs">Book Order</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Job Card Details & Edit Modal (Prints Invoice / Job Card) -->
+  <div id="modal-job-card" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm hidden">
+    <div class="glass-card-no-hover w-full max-w-2xl p-6 mx-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center mb-5 pb-2 border-b border-gray-800">
+        <h4 class="text-base font-bold">Job Card Management</h4>
+        <button class="text-gray-400 hover:text-white close-modal"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      
+      <div class="space-y-6">
+        <!-- 8 workflows quick update -->
+        <div class="flex flex-wrap gap-2 p-3 rounded-lg bg-white bg-opacity-5 border border-gray-850">
+          <span class="text-[10px] text-gray-400 uppercase font-semibold w-full mb-1">Workflow Status:</span>
+          <button class="px-2 py-1 text-[10px] rounded border border-gray-700 bg-gray-800 hover:bg-gray-700 btn-status-set" data-val="Received">Received</button>
+          <button class="px-2 py-1 text-[10px] rounded border border-gray-700 bg-gray-800 hover:bg-blue-900 btn-status-set" data-val="Inspection">Inspection</button>
+          <button class="px-2 py-1 text-[10px] rounded border border-gray-700 bg-gray-800 hover:bg-red-900 btn-status-set" data-val="Parts Required">Parts Req.</button>
+          <button class="px-2 py-1 text-[10px] rounded border border-gray-700 bg-gray-800 hover:bg-yellow-900 btn-status-set" data-val="Repair In Progress">Repairing</button>
+          <button class="px-2 py-1 text-[10px] rounded border border-gray-700 bg-gray-800 hover:bg-purple-900 btn-status-set" data-val="Welding Work">Welding</button>
+          <button class="px-2 py-1 text-[10px] rounded border border-gray-700 bg-gray-800 hover:bg-orange-900 btn-status-set" data-val="Testing">Testing</button>
+          <button class="px-2 py-1 text-[10px] rounded border border-gray-700 bg-gray-800 hover:bg-green-900 btn-status-set" data-val="Ready for Delivery">Ready</button>
+          <button class="px-2 py-1 text-[10px] rounded border border-gray-700 bg-gray-800 hover:bg-teal-900 btn-status-set" data-val="Delivered">Delivered</button>
+        </div>
+
+        <!-- Perform Form update parts and logs -->
+        <form id="form-update-job-details" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input type="hidden" id="jc-order-id">
+          <div class="flex flex-col col-span-2">
+            <label class="text-xs font-semibold text-gray-400 mb-1">Work Actually Performed</label>
+            <textarea id="jc-work-performed" class="glass-input text-xs h-16" placeholder="Details of repair logs..."></textarea>
+          </div>
+          <div class="flex flex-col col-span-2">
+            <label class="text-xs font-semibold text-gray-400 mb-1">Spare Parts Used</label>
+            <input type="text" id="jc-parts-used" class="glass-input text-xs" placeholder="e.g. Engine oil, filters, welding rods">
+          </div>
+          <div class="flex flex-col">
+            <label class="text-xs font-semibold text-gray-400 mb-1">Final Actual Cost (₹)</label>
+            <input type="number" id="jc-actual-cost" class="glass-input text-xs">
+          </div>
+          <div class="flex flex-col">
+            <label class="text-xs font-semibold text-gray-400 mb-1">Mechanic Assigned</label>
+            <select id="jc-mechanic-select" class="glass-input text-xs">
+              <!-- filled -->
+            </select>
+          </div>
+          <button type="submit" class="btn-primary text-xs col-span-2 justify-center">Save Job Progress</button>
+        </form>
+
+        <div class="pt-4 border-t border-gray-800 flex justify-between gap-3">
+          <button id="btn-print-job-card" class="btn-secondary text-xs text-brand border-brand border-opacity-35 hover:bg-brand hover:bg-opacity-15">
+            <i data-lucide="printer" class="w-4 h-4"></i> Print Official Job Card
+          </button>
+          <button id="btn-print-invoice" class="btn-secondary text-xs text-green-400 border-green-500 border-opacity-35 hover:bg-green-500 hover:bg-opacity-15">
+            <i data-lucide="receipt" class="w-4 h-4"></i> Generate & Print Invoice
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Record Payment Modal -->
+  <div id="modal-record-payment" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm hidden">
+    <div class="glass-card-no-hover w-full max-w-md p-6 mx-4">
+      <div class="flex justify-between items-center mb-5 pb-2 border-b border-gray-800">
+        <h4 class="text-base font-bold">Record Customer Payment</h4>
+        <button class="text-gray-400 hover:text-white close-modal"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <form id="form-record-payment" class="space-y-4">
+        <input type="hidden" id="payment-cust-id">
+        <div class="flex flex-col">
+          <label class="text-xs font-semibold text-gray-400 mb-1">Customer Name</label>
+          <input type="text" id="payment-cust-name" class="glass-input text-xs" readonly>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="flex flex-col">
+            <label class="text-xs font-semibold text-gray-400 mb-1">Outstanding Balance</label>
+            <input type="text" id="payment-cust-dues" class="glass-input text-xs font-bold text-red-400" readonly>
+          </div>
+          <div class="flex flex-col">
+            <label class="text-xs font-semibold text-gray-400 mb-1">Paying Amount (₹)</label>
+            <input type="number" id="payment-amount" class="glass-input text-xs" required>
+          </div>
+        </div>
+        <div class="flex flex-col">
+          <label class="text-xs font-semibold text-gray-400 mb-1">Payment Method</label>
+          <select id="payment-method-select" class="glass-input text-xs" required>
+            <option value="UPI">UPI</option>
+            <option value="Cash">Cash</option>
+            <option value="Bank Transfer">Bank Transfer</option>
+          </select>
+        </div>
+        <div class="flex flex-col">
+          <label class="text-xs font-semibold text-gray-400 mb-1">Payment Notes / Reference</label>
+          <input type="text" id="payment-notes" class="glass-input text-xs" placeholder="e.g. UPI txn ref number">
+        </div>
+        <div class="flex justify-end gap-3 pt-3 border-t border-gray-800">
+          <button type="button" class="btn-secondary text-xs close-modal">Cancel</button>
+          <button type="submit" class="btn-primary text-xs">Record Transaction</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Spare Part Inventory Modal -->
+  <div id="modal-add-inventory" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm hidden">
+    <div class="glass-card-no-hover w-full max-w-md p-6 mx-4">
+      <div class="flex justify-between items-center mb-5 pb-2 border-b border-gray-800">
+        <h4 class="text-base font-bold">Add Spare Part to Stock</h4>
+        <button class="text-gray-400 hover:text-white close-modal"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <form id="form-add-inventory" class="space-y-4">
+        <div class="flex flex-col">
+          <label class="text-xs font-semibold text-gray-400 mb-1">Part Name / Spec</label>
+          <input type="text" id="inv-part-name" class="glass-input text-xs" required>
+        </div>
+        <div class="flex flex-col">
+          <label class="text-xs font-semibold text-gray-400 mb-1">Brand Fitting</label>
+          <select id="inv-brand" class="glass-input text-xs" required>
+            <option value="Mahindra">Mahindra</option>
+            <option value="Swaraj">Swaraj</option>
+            <option value="John Deere">John Deere</option>
+            <option value="Lucas TVS">Lucas TVS</option>
+            <option value="Universal">Universal</option>
+          </select>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="flex flex-col">
+            <label class="text-xs font-semibold text-gray-400 mb-1">Quantity In Stock</label>
+            <input type="number" id="inv-quantity" class="glass-input text-xs" required>
+          </div>
+          <div class="flex flex-col">
+            <label class="text-xs font-semibold text-gray-400 mb-1">Reorder Point</label>
+            <input type="number" id="inv-reorder" class="glass-input text-xs" required>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="flex flex-col">
+            <label class="text-xs font-semibold text-gray-400 mb-1">Purchase Price (₹)</label>
+            <input type="number" id="inv-purchase" class="glass-input text-xs" required>
+          </div>
+          <div class="flex flex-col">
+            <label class="text-xs font-semibold text-gray-400 mb-1">Selling Price (₹)</label>
+            <input type="number" id="inv-selling" class="glass-input text-xs" required>
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 pt-3 border-t border-gray-800">
+          <button type="button" class="btn-secondary text-xs close-modal">Cancel</button>
+          <button type="submit" class="btn-primary text-xs">Add Part</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Salary Detail & Payslip Printable Modal -->
+  <div id="modal-salary-payslip" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm hidden">
+    <div class="glass-card-no-hover w-full max-w-lg p-6 mx-4">
+      <div class="flex justify-between items-center mb-5 pb-2 border-b border-gray-800">
+        <h4 class="text-base font-bold">Employee Salary Calculation</h4>
+        <button class="text-gray-400 hover:text-white close-modal"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      
+      <div class="space-y-4 text-sm" id="salary-breakdown-details">
+        <!-- filled dynamically -->
+      </div>
+      
+      <div class="flex justify-between gap-3 pt-4 border-t border-gray-800 no-print">
+        <button id="btn-print-payslip" class="btn-secondary text-xs">
+          <i data-lucide="printer" class="w-4 h-4"></i> Print Payslip
+        </button>
+        <button id="btn-payout-salary" class="btn-primary text-xs text-green-400">
+          <i data-lucide="indian-rupee" class="w-4 h-4"></i> Record Payout (Expense)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Employee Modal -->
+  <div id="modal-add-employee" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm hidden">
+    <div class="glass-card-no-hover w-full max-w-md p-6 mx-4">
+      <div class="flex justify-between items-center mb-5 pb-2 border-b border-gray-800">
+        <h4 class="text-base font-bold">Add Workshop Employee</h4>
+        <button class="text-gray-400 hover:text-white close-modal"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <form id="form-add-employee" class="space-y-4">
+        <div class="flex flex-col">
+          <label class="text-xs font-semibold text-gray-400 mb-1">Full Name</label>
+          <input type="text" id="emp-name" class="glass-input text-xs" required>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="flex flex-col">
+            <label class="text-xs font-semibold text-gray-400 mb-1">Role</label>
+            <select id="emp-role" class="glass-input text-xs" required>
+              <option value="Mechanic">Mechanic</option>
+              <option value="Welding Specialist">Welding Specialist</option>
+              <option value="Helper">Helper</option>
+              <option value="Supervisor">Supervisor</option>
+              <option value="Accountant">Accountant</option>
+            </select>
+          </div>
+          <div class="flex flex-col">
+            <label class="text-xs font-semibold text-gray-400 mb-1">Phone Number</label>
+            <input type="tel" id="emp-phone" class="glass-input text-xs" required>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="flex flex-col">
+            <label class="text-xs font-semibold text-gray-400 mb-1">Experience (e.g. 5 Years)</label>
+            <input type="text" id="emp-exp" class="glass-input text-xs" required>
+          </div>
+          <div class="flex flex-col">
+            <label class="text-xs font-semibold text-gray-400 mb-1">Base Salary (₹/month)</label>
+            <input type="number" id="emp-salary" class="glass-input text-xs" required>
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 pt-3 border-t border-gray-800">
+          <button type="button" class="btn-secondary text-xs close-modal">Cancel</button>
+          <button type="submit" class="btn-primary text-xs">Add Employee</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Candidate Modal -->
+  <div id="modal-add-candidate" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm hidden">
+    <div class="glass-card-no-hover w-full max-w-md p-6 mx-4">
+      <div class="flex justify-between items-center mb-5 pb-2 border-b border-gray-800">
+        <h4 class="text-base font-bold">Add Job Candidate</h4>
+        <button class="text-gray-400 hover:text-white close-modal"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <form id="form-add-candidate" class="space-y-4">
+        <div class="flex flex-col">
+          <label class="text-xs font-semibold text-gray-400 mb-1">Candidate Name</label>
+          <input type="text" id="cand-name" class="glass-input text-xs" required>
+        </div>
+        <div class="flex flex-col">
+          <label class="text-xs font-semibold text-gray-400 mb-1">Position Opening</label>
+          <select id="cand-role" class="glass-input text-xs" required>
+            <option value="Mahindra Specialist">Mahindra Specialist</option>
+            <option value="Tractor Mechanic">Tractor Mechanic</option>
+            <option value="Welding Technician">Welding Technician</option>
+            <option value="Workshop Helper">Workshop Helper</option>
+          </select>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="flex flex-col">
+            <label class="text-xs font-semibold text-gray-400 mb-1">Mobile Phone</label>
+            <input type="tel" id="cand-phone" class="glass-input text-xs" required>
+          </div>
+          <div class="flex flex-col">
+            <label class="text-xs font-semibold text-gray-400 mb-1">Experience (e.g. 3 Years)</label>
+            <input type="text" id="cand-exp" class="glass-input text-xs" required>
+          </div>
+        </div>
+        <div class="flex flex-col">
+          <label class="text-xs font-semibold text-gray-400 mb-1">Expected Salary (₹/month)</label>
+          <input type="number" id="cand-salary" class="glass-input text-xs" required>
+        </div>
+        <div class="flex flex-col">
+          <label class="text-xs font-semibold text-gray-400 mb-1">Interview / Trial Notes</label>
+          <textarea id="cand-notes" class="glass-input text-xs h-16" placeholder="Notes on applicant skills..."></textarea>
+        </div>
+        <div class="flex justify-end gap-3 pt-3 border-t border-gray-800">
+          <button type="button" class="btn-secondary text-xs close-modal">Cancel</button>
+          <button type="submit" class="btn-primary text-xs">Add Candidate</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- 4. PRINT LAYOUTS CONTAINER (Strictly visible only for printing) -->
+  <div id="print-view-container" class="hidden print-only bg-white text-black p-8 font-sans">
+    <!-- JS will populate this with clean HTML block (Invoice or Job Card) during printing -->
+  </div>
+
+  <!-- TOAST NOTIFICATION POPUP -->
+  <div id="toast" class="fixed bottom-5 left-5 z-50 px-4 py-3 rounded-lg bg-green-600 text-white font-semibold text-sm flex items-center gap-2 shadow-lg transition-transform duration-300 transform translate-y-24 opacity-0">
+    <i data-lucide="check-circle" class="w-5 h-5"></i>
+    <span id="toast-message">Task updated!</span>
+  </div>
+
+  <!-- Custom JavaScript -->
+  <script src="app.js"></script>
+</body>
+</html>
